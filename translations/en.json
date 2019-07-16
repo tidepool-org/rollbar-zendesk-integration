@@ -1,0 +1,8 @@
+{
+  "app": {
+    "name": "Rollbar-Zendesk Integration",
+    "short_description": "Brings Rollbar into your Zendesk dashboard",
+    "long_description": "Shows the 10 most recent Rollbar errors for a \n specific requester ticket in the right-hand.",
+    "installation_instructions": "Simply click install."
+  }
+}
