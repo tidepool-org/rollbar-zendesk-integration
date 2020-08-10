@@ -10,6 +10,10 @@
     <div><b>Status:</b> <span class="data">{{status}}</span></div>
 
     {{#if rows}}
+    <div><b>Person:</b> <span class="data">
+      <a href="{{personUrl}}" target="_blank">{{person}}</a>
+    </span></div>
+    
     <b>Recent occurrences</b>
     {{#each rows}}
       <div class="occurrence" width="100%">

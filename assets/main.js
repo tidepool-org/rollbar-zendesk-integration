@@ -12,7 +12,9 @@ $(function() {
 function showInfo(data) {
   var requester_data = {
     'status': data.status,
-    'rows' : data.rows
+    'rows' : data.rows,
+    'person' : data.person,
+    'personUrl' : data.personUrl
   };
 
   var source = $("#requester-template").html();
@@ -38,7 +40,7 @@ function requestRollbarInfo(client, id) {
   const settings = {
     url: 'https://api.rollbar.com/api/1/rql/jobs/',
     data: {
-     query_string: 'SELECT item.title, timestamp, occurrence_id, project_slug, item.counter from item_occurrence WHERE timestamp > unix_timestamp() - 60 * 60 * 24 * 30 AND person.email="' + id + '" LIMIT 10',
+     query_string: 'SELECT item.title, timestamp, occurrence_id, project_slug, item.counter, person.id, person.username from item_occurrence WHERE timestamp > unix_timestamp() - 60 * 60 * 24 * 30 AND person.email="' + id + '" LIMIT 10',
      access_token: '{{setting.token}}'
     },
     type: 'POST',
@@ -109,6 +111,9 @@ function getResults(client, response, data) {
     data.rows = [];
 
     client.metadata().then(function(metadata) {
+      data.personUrl = 'https://rollbar.com/' + metadata.settings.account_name + '/' + rows[0][3] + '/person/?environment=production&person_id=' + rows[0][5];
+      data.person = rows[0][6];
+
       for (let i = 0; i < rows.length; i++) {
         data.rows.push({
           title: rows[i][0],
