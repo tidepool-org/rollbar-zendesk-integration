@@ -39,11 +39,14 @@ function requestRollbarInfo(client, id) {
   const data = {};
   const settings = {
     url: 'https://api.rollbar.com/api/1/rql/jobs/',
-    data: {
-     query_string: `SELECT item.title, timestamp, occurrence_id, project_slug, item.counter, person.id, person.username from item_occurrence WHERE timestamp > unix_timestamp() - 60 * 60 * 24 * 30 AND person.email="${id}" LIMIT 10`,
-     access_token: '{{setting.token}}'
-    },
+    contentType: 'application/json',
+    data: JSON.stringify({
+     query_string: `SELECT item.title, timestamp, occurrence_id, project_slug, item.counter, person.id, person.username from item_occurrence WHERE timestamp > unix_timestamp() - 60 * 60 * 24 * 30 AND person.email="${id}" LIMIT 10`
+    }),
     type: 'POST',
+    headers: {
+      'X-Rollbar-Access-Token': '{{setting.token}}'
+    },
     secure: true
   };
 
@@ -58,8 +61,8 @@ function requestRollbarInfo(client, id) {
 
      const settingsCheck = {
        url: 'https://api.rollbar.com/api/1/rql/job/' + response.result.id,
-       data: {
-         access_token: '{{setting.token}}'
+       headers: {
+         'X-Rollbar-Access-Token': '{{setting.token}}'
        },
        type: 'GET',
        dataType: 'json',
@@ -97,8 +100,8 @@ function getResults(client, response, data) {
 
   const settings = {
     url: 'https://api.rollbar.com/api/1/rql/job/' + response.result.id + '/result',
-    data: {
-      access_token: '{{setting.token}}'
+    headers: {
+      'X-Rollbar-Access-Token': '{{setting.token}}'
     },
     type: 'GET',
     dataType: 'json',
@@ -110,19 +113,23 @@ function getResults(client, response, data) {
     const rows = res.result.result.rows;
     data.rows = [];
 
-    client.metadata().then(function(metadata) {
-      data.personUrl = `https://rollbar.com/${metadata.settings.account_name}/${rows[0][3]}/person/?environment=production&person_id=${rows[0][5]}`;
-      data.person = rows[0][6];
+    if (rows == null || rows.length === 0) {
+      showInfo({status : 'No Rollbar data found for this e-mail address.'});
+    } else {
+      client.metadata().then(function(metadata) {
+        data.personUrl = `https://rollbar.com/${metadata.settings.account_name}/${rows[0][3]}/person/?environment=production&person_id=${rows[0][5]}`;
+        data.person = rows[0][6];
 
-      for (let i = 0; i < rows.length; i++) {
-        data.rows.push({
-          title: rows[i][0],
-          url: `https://rollbar.com/${metadata.settings.account_name}/${rows[i][3]}/items/${rows[i][4]}/occurrences/${rows[i][2]}/`,
-          timestamp: formatDate(rows[i][1] * 1000)
-        });
-      }
-      showInfo(data);
-    });
+        for (let i = 0; i < rows.length; i++) {
+          data.rows.push({
+            title: rows[i][0],
+            url: `https://rollbar.com/${metadata.settings.account_name}/${rows[i][3]}/items/${rows[i][4]}/occurrences/${rows[i][2]}/`,
+            timestamp: formatDate(rows[i][1] * 1000)
+          });
+        }
+        showInfo(data);
+      });
+    }
   }, function(response) {
     showError(response);
   });
