@@ -39,11 +39,14 @@ function requestRollbarInfo(client, id) {
   const data = {};
   const settings = {
     url: 'https://api.rollbar.com/api/1/rql/jobs/',
-    data: {
-     query_string: `SELECT item.title, timestamp, occurrence_id, project_slug, item.counter, person.id, person.username from item_occurrence WHERE timestamp > unix_timestamp() - 60 * 60 * 24 * 30 AND person.email="${id}" LIMIT 10`,
-     access_token: '{{setting.token}}'
-    },
+    contentType: 'application/json',
+    data: JSON.stringify({
+     query_string: `SELECT item.title, timestamp, occurrence_id, project_slug, item.counter, person.id, person.username from item_occurrence WHERE timestamp > unix_timestamp() - 60 * 60 * 24 * 30 AND person.email="${id}" LIMIT 10`
+    }),
     type: 'POST',
+    headers: {
+      'X-Rollbar-Access-Token': '{{setting.token}}'
+    },
     secure: true
   };
 
@@ -58,8 +61,8 @@ function requestRollbarInfo(client, id) {
 
      const settingsCheck = {
        url: 'https://api.rollbar.com/api/1/rql/job/' + response.result.id,
-       data: {
-         access_token: '{{setting.token}}'
+       headers: {
+         'X-Rollbar-Access-Token': '{{setting.token}}'
        },
        type: 'GET',
        dataType: 'json',
@@ -97,8 +100,8 @@ function getResults(client, response, data) {
 
   const settings = {
     url: 'https://api.rollbar.com/api/1/rql/job/' + response.result.id + '/result',
-    data: {
-      access_token: '{{setting.token}}'
+    headers: {
+      'X-Rollbar-Access-Token': '{{setting.token}}'
     },
     type: 'GET',
     dataType: 'json',
